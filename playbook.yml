@@ -1,0 +1,65 @@
+# Nom du playbook : Configurer et déployer Apache sur les noeuds cibles
+- name: Configurer et déployer Apache sur les noeuds cibles
+
+  # Les hôtes sur lesquels le playbook sera exécuté
+  hosts: ec2
+
+  # Utiliser les privilèges d'administrateur pour exécuter les tâches
+  become: true
+
+  # Variables définies pour le playbook
+  vars:
+    # Nom du paquet Apache pour Amazon Linux
+    apache_package_name: httpd
+
+    # Chemin du fichier de configuration Apache pour Amazon Linux
+    apache_config_path: /etc/httpd/conf.d/my_site.conf
+
+    # Nom du service Apache pour Amazon Linux
+    apache_service_name: httpd
+
+    # Chemin du répertoire racine du site web
+    document_root: /var/www/html/app
+
+  # Liste des tâches à exécuter
+  tasks:
+    # Installer le paquet Apache
+    - name: Installer le paquet Apache
+      ansible.builtin.package:
+        name: "{{ apache_package_name }}" # Utilise la variable définie ci-dessus
+        state: present # Assure que le paquet est installé
+
+    # Activer et démarrer le service Apache
+    - name: Activer et démarrer le service Apache
+      ansible.builtin.service:
+        name: "{{ apache_service_name }}" # Utilise la variable définie ci-dessus
+        state: started # Assure que le service est démarré
+        enabled: yes # Assure que le service démarre au démarrage du système
+
+    # Copier le fichier de configuration Apache personnalisé depuis la machine locale vers les hôtes cibles
+    - name: Copier le fichier de configuration Apache personnalisé
+      ansible.builtin.copy:
+        src: files/apache.conf # Chemin du fichier source sur la machine locale
+        dest: "{{ apache_config_path }}" # Chemin de destination sur les hôtes cibles
+      notify: Reload Apache # Si le fichier change, notifier le gestionnaire pour recharger Apache
+
+    # Créer un répertoire pour l'application web sur les hôtes cibles
+    - name: Créer un répertoire pour l'application web
+      ansible.builtin.file:
+        path: "{{ document_root }}" # Utilise la variable définie ci-dessus
+        state: directory # Assure que c'est un répertoire
+        mode: '0755' # Définit les permissions du répertoire
+
+    # Copier un fichier HTML simple depuis la machine locale vers les hôtes cibles
+    - name: Copier le fichier HTML simple
+      ansible.builtin.copy:
+        src: files/index.html # Chemin du fichier source sur la machine locale
+        dest: "{{ document_root }}/index.html" # Chemin de destination sur les hôtes cibles
+
+  # Gestionnaires : actions à exécuter en réponse à des notifications
+  handlers:
+    # Recharger le service Apache
+    - name: Reload Apache
+      ansible.builtin.service:
+        name: "{{ apache_service_name }}" # Utilise la variable définie ci-dessus
+        state: reloaded # Recharge le service
