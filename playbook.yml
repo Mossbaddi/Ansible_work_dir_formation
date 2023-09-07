@@ -1,0 +1,22 @@
+---
+- name: Installer Node.js et Gatsby CLI avec npm
+  hosts: votre_groupe_ou_hote_cible
+  become: true
+  tasks:
+    - name: Installer les dépendances nécessaires
+      ansible.builtin.yum:
+        name:
+          - gcc-c++
+          - make
+        state: present
+
+    - name: Installer Node.js et npm depuis les dépôts officiels
+      ansible.builtin.yum:
+        name: nodejs
+        state: present
+        enablerepo: epel
+
+    - name: Installer Gatsby CLI avec npm
+      ansible.builtin.npm:
+        name: gatsby-cli
+        global: yes
