@@ -1,6 +1,6 @@
 ---
 - name: Installer Node.js et Gatsby CLI avec npm
-  hosts: votre_groupe_ou_hote_cible
+  hosts: ec2
   become: true
   tasks:
     - name: Installer les dépendances nécessaires
